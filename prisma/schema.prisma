@@ -14,15 +14,15 @@ datasource db {
 model User {
   id String @id @default(cuid())
 
-  email                       String   @unique
+  email                       String    @unique
   name                        String
   password                    String
-  verificationToken           Int
-  verificationTokenExpiresAt  DateTime
-  resetPasswordToken          Int
-  resetPasswordTokenExpiresAt DateTime
-  isVerified                  Boolean  @default(false)
-  isLoggedIn                  Boolean  @default(false)
+  verificationToken           Int?
+  verificationTokenExpiresAt  DateTime?
+  resetPasswordToken          Int?
+  resetPasswordTokenExpiresAt DateTime?
+  isVerified                  Boolean   @default(false)
+  isLoggedIn                  Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

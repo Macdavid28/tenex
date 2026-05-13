@@ -1,8 +1,10 @@
 {
   "dependencies": {
+    "@getbrevo/brevo": "^5.0.4",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -19,7 +21,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "server": "node dist/index.js",
-    "syncdb":"npx prisma generate"
+    "syncdb": "npx prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +29,7 @@
   "type": "module",
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.7.0",
