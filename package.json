@@ -19,7 +19,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "server": "node dist/index.js",
-    "postinstall": "prisma generate"
+    "syncdb":"npx prisma generate"
   },
   "keywords": [],
   "author": "",
