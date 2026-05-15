@@ -3,7 +3,9 @@ import { prisma } from "../lib/prisma.js";
 import { userSchema } from "../schema/user.schema.js";
 import bcrypt from "bcrypt";
 import { sendVerificationEmail } from "../email/email.js";
-
+import { loginService } from "../services/auth.service.js";
+import { AppError } from "@/utils/AppError.js";
+import { ZodError } from "zod";
 export const register = async (req: Request, res: Response) => {
   try {
     const validateData = userSchema.parse(req.body);
@@ -49,5 +51,30 @@ export const register = async (req: Request, res: Response) => {
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
+  try {
+    const validateData = userSchema.parse(req.body);
+    const { email, password } = validateData;
+    const { user, token } = await loginService(email, password);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({ user });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({ error: error.issues.map((i) => i.message) });
+    } else if (error instanceof AppError) {
+      res.status(error.status).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 };

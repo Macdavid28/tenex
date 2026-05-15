@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import type { Request, Response } from "express";
 import { authRoutes } from "./routes/auth.routes.js";
-
+import crypto from "crypto";
 const server = express();
 const PORT = process.env.PORT || 3400;
 // for parsing all json request bodies

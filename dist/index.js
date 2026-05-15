@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import { authRoutes } from "./routes/auth.routes.js";
+import crypto from "crypto";
 const server = express();
 const PORT = process.env.PORT || 3400;
 // for parsing all json request bodies
@@ -22,4 +23,6 @@ server.use("/api/v1/auth", authRoutes);
 server.listen(PORT, () => {
     console.log("Server running on port 3400");
 });
+const jwt_secret = crypto.randomBytes(32).toString("hex");
+console.log(jwt_secret);
 //# sourceMappingURL=index.js.map
