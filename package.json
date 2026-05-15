@@ -20,7 +20,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "server": "node dist/index.js",
+    "server": "tsc && node dist/index.js",
+    "migratedb":"npx prisma migrate dev --name init",
     "syncdb": "npx prisma generate"
   },
   "keywords": [],
