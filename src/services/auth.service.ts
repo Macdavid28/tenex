@@ -39,9 +39,30 @@ export const registerService = async (
   return { newUser };
 };
 
-const jwtSecret = process.env.JWT_SECRET;
+// resend verification mail
 
-if (!jwtSecret) throw new AppError("JWT secret not configured", 500);
+export const resendVerificationEmail = async (email: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return; // don't reveal if email exists
+
+  if (user.isVerified) {
+    throw new AppError("Email already verified", 400);
+  }
+
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const hashedOtp = await bcrypt.hash(otp, 10);
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      verificationToken: hashedOtp,
+      verificationTokenExpiresAt: otpExpiresAt,
+    },
+  });
+
+  await sendVerificationEmail(user.name, email, otp);
+};
 
 // Verify token
 export const verifyTokenService = async (email: string, token: string) => {
@@ -70,6 +91,7 @@ export const verifyTokenService = async (email: string, token: string) => {
   });
   await sendWelcomeEmail(email, user.name);
 };
+
 // forgot password
 export const forgotPasswordService = async (email: string) => {
   const user = await prisma.user.findUnique({ where: { email } });
@@ -90,6 +112,31 @@ export const forgotPasswordService = async (email: string) => {
       resetPasswordTokenExpiresAt: resetPasswordValidity,
     },
   });
+  await sendPasswordResetEmail(
+    email,
+    `${process.env.CLIENT_LINK}/reset-password/${resetToken}`,
+  );
+};
+
+// resend password mail
+export const resendPasswordResetEmail = async (email: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return;
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      resetPasswordToken: hashedToken,
+      resetPasswordTokenExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    },
+  });
+
   await sendPasswordResetEmail(
     email,
     `${process.env.CLIENT_LINK}/reset-password/${resetToken}`,
@@ -124,6 +171,8 @@ export const resetPasswordService = async (token: string, password: string) => {
 
 // login logic
 export const loginService = async (email: string, password: string) => {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) throw new AppError("JWT secret not configured", 500);
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     throw new AppError("User not found, sign up", 404);
