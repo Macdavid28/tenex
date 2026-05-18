@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { sendVerificationEmail } from "../email/email.js";
+import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail, } from "../email/email.js";
 import { AppError } from "../utils/AppError.js";
 import crypto from "crypto";
 // Sign up service
@@ -53,7 +53,28 @@ export const verifyTokenService = async (email, token) => {
             verificationTokenExpiresAt: null,
         },
     });
-    // return { email };
+    await sendWelcomeEmail(email, user.name);
+};
+// forgot password
+export const forgotPasswordService = async (email) => {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+        throw new AppError("If this email exists, a reset link will be sent", 200);
+    }
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+    const resetPasswordValidity = new Date(Date.now() + 10 * 60 * 1000);
+    await prisma.user.update({
+        where: { email },
+        data: {
+            resetPasswordToken: hashedToken,
+            resetPasswordTokenExpiresAt: resetPasswordValidity,
+        },
+    });
+    await sendPasswordResetEmail(email, `${process.env.CLIENT_LINK}/reset-password/${resetToken}`);
 };
 // login logic
 export const loginService = async (email, password) => {

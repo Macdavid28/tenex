@@ -4,6 +4,8 @@ import {
   registerService,
   loginService,
   verifyTokenService,
+  forgotPasswordService,
+  resetPasswordService,
 } from "../services/auth.service.js";
 import { AppError } from "../utils/AppError.js";
 import { ZodError } from "zod";
@@ -45,6 +47,45 @@ export const verifyEmail = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email }: { email: string } = req.body;
+    await forgotPasswordService(email);
+    res
+      .status(200)
+      .json({ message: "reset password link will be sent to email shortly" });
+  } catch (error) {
+    if (error instanceof AppError) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
+export const resetPassword = async (
+  req: Request<{ token: string }>,
+  res: Response,
+) => {
+  try {
+    const { token } = req.params;
+    const { password } = userSchema.parse(req.body);
+
+    await resetPasswordService(token, password);
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({ message: error.issues.map((i) => i.message) });
+    } else if (error instanceof AppError) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
 // Login
 export const login = async (req: Request, res: Response) => {
   try {

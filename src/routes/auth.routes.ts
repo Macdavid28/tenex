@@ -1,4 +1,5 @@
 import {
+  forgotPassword,
   login,
   register,
   verifyEmail,
@@ -10,4 +11,5 @@ export const authRoutes: Router = express.Router();
 
 authRoutes.post("/register", register);
 authRoutes.post("/verify", verifyEmail);
+authRoutes.post("/forgot-password", forgotPassword);
 authRoutes.post("/login", login);

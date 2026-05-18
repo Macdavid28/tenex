@@ -1,5 +1,5 @@
 import { userSchema } from "../schema/user.schema.js";
-import { registerService, loginService, verifyTokenService, } from "../services/auth.service.js";
+import { registerService, loginService, verifyTokenService, forgotPasswordService, } from "../services/auth.service.js";
 import { AppError } from "../utils/AppError.js";
 import { ZodError } from "zod";
 // signup
@@ -34,6 +34,23 @@ export const verifyEmail = async (req, res) => {
         const { email, token } = req.body;
         await verifyTokenService(email, token);
         res.status(200).json({ message: "Email verified successfully" });
+    }
+    catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ message: error.message });
+        }
+        else {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }
+};
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        await forgotPasswordService(email);
+        res
+            .status(200)
+            .json({ message: "reset password link will be sent to email shortly" });
     }
     catch (error) {
         if (error instanceof AppError) {

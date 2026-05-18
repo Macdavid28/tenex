@@ -6,7 +6,7 @@ export declare const registerService: (name: string, email: string, password: st
         id: string;
         verificationToken: string | null;
         verificationTokenExpiresAt: Date | null;
-        resetPasswordToken: number | null;
+        resetPasswordToken: string | null;
         resetPasswordTokenExpiresAt: Date | null;
         isVerified: boolean;
         isLoggedIn: boolean;
@@ -15,6 +15,7 @@ export declare const registerService: (name: string, email: string, password: st
     };
 }>;
 export declare const verifyTokenService: (email: string, token: string) => Promise<void>;
+export declare const forgotPasswordService: (email: string) => Promise<void>;
 export declare const loginService: (email: string, password: string) => Promise<{
     user: {
         name: string;
@@ -23,7 +24,7 @@ export declare const loginService: (email: string, password: string) => Promise<
         id: string;
         verificationToken: string | null;
         verificationTokenExpiresAt: Date | null;
-        resetPasswordToken: number | null;
+        resetPasswordToken: string | null;
         resetPasswordTokenExpiresAt: Date | null;
         isVerified: boolean;
         isLoggedIn: boolean;
