@@ -38,9 +38,9 @@ model User {
   email                       String    @unique
   name                        String
   password                    String
-  verificationToken           Int?
+  verificationToken           String?
   verificationTokenExpiresAt  DateTime?
-  resetPasswordToken          Int?
+  resetPasswordToken          String?
   resetPasswordTokenExpiresAt DateTime?
   isVerified                  Boolean   @default(false)
   isLoggedIn                  Boolean   @default(false)
@@ -65,7 +65,7 @@ model Organization {
 model Membership {
   id             String @id @default(cuid())
   userId         String
-  organizationId String 
+  organizationId String
 
   role       Role             @default(MEMBER)
   status     MembershipStatus @default(PENDING)

@@ -1,6 +1,6 @@
 export const verificationEmailTemplate = (
   name: string,
-  verificationToken: number,
+  verificationToken: string,
 ) => `
 <!DOCTYPE html>
 <html lang="en">

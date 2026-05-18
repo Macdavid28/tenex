@@ -22,7 +22,7 @@ const sendEmail = async (
 export const sendVerificationEmail = async (
   name: string,
   email: string,
-  verificationToken: number,
+  verificationToken: string,
 ) => {
   try {
     const data = await sendEmail(
@@ -51,7 +51,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
   }
 };
 
-export const sendPasswordResetEmail = async (email: string, otp: number) => {
+export const sendPasswordResetEmail = async (email: string, otp: string) => {
   try {
     const data = await sendEmail(
       "Your Password Reset Code",

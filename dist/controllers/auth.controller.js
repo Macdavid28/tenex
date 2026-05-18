@@ -1,52 +1,76 @@
-import { prisma } from "../lib/prisma.js";
 import { userSchema } from "../schema/user.schema.js";
-import bcrypt from "bcrypt";
-import { sendVerificationEmail } from "../email/email.js";
+import { registerService, loginService, verifyTokenService, } from "../services/auth.service.js";
+import { AppError } from "../utils/AppError.js";
+import { ZodError } from "zod";
+// signup
 export const register = async (req, res) => {
     try {
+        //   validate data input
         const validateData = userSchema.parse(req.body);
-        //   validate data
-        if (!validateData) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid data",
-            });
-        }
         const { name, email, password } = validateData;
-        // check if user exists
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-            return res
-                .status(400)
-                .json({ success: false, message: "User exists pls login" });
+        // pass input data to register service function
+        const { newUser } = await registerService(name, email, password);
+        if (!validateData) {
+            throw new AppError("Invalid data input", 400);
         }
-        // salt password
-        const salt = await bcrypt.genSalt(10);
-        // hash password
-        const hashPassword = await bcrypt.hash(password, salt);
-        // generate otp function
-        // ✅ After
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        // otp validity
-        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
-        const newUser = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashPassword,
-                verificationToken: otp,
-                verificationTokenExpiresAt: otpExpiresAt,
-            },
-        });
         res
             .status(201)
             .json({ success: true, message: "User created", user: newUser });
-        await sendVerificationEmail(name, email, otp);
     }
     catch (error) {
-        return res
-            .status(500)
-            .json({ success: false, message: "Internal server error" });
+        if (error instanceof ZodError) {
+            res.status(400).json({ error: error.issues.map((i) => i.message) });
+        }
+        else if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
+        }
+        else {
+            res.status(500).json({ error: "Internal server error" });
+        }
+    }
+};
+export const verifyEmail = async (req, res) => {
+    try {
+        const { email, token } = req.body;
+        await verifyTokenService(email, token);
+        res.status(200).json({ message: "Email verified successfully" });
+    }
+    catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ message: error.message });
+        }
+        else {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }
+};
+// Login
+export const login = async (req, res) => {
+    try {
+        //   validate data input
+        const validateData = userSchema.parse(req.body);
+        const { email, password } = validateData;
+        // pass input data to register service function
+        const { user, token } = await loginService(email, password);
+        // set session cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        res.json({ user });
+    }
+    catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ error: error.issues.map((i) => i.message) });
+        }
+        else if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
+        }
+        else {
+            res.status(500).json({ error: "Internal server error" });
+        }
     }
 };
 //# sourceMappingURL=auth.controller.js.map
