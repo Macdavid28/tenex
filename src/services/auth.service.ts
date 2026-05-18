@@ -5,6 +5,7 @@ import {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
+  sendResetSuccessEmail,
 } from "../email/email.js";
 import { AppError } from "../utils/AppError.js";
 import crypto from "crypto";
@@ -118,6 +119,7 @@ export const resetPasswordService = async (token: string, password: string) => {
       resetPasswordTokenExpiresAt: null,
     },
   });
+  await sendResetSuccessEmail(user.email);
 };
 
 // login logic
